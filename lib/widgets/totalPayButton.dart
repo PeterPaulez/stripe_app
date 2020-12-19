@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class TotalPayButton extends StatelessWidget {
+  final bool pagoTarjeta = true;
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -30,7 +31,7 @@ class TotalPayButton extends StatelessWidget {
               Text('250.55 USD', style: TextStyle(fontSize: 20)),
             ],
           ),
-          _BtnPayCard(),
+          (pagoTarjeta) ? _BtnPayCard() : _BtnPayOS(),
         ],
       ),
     );
