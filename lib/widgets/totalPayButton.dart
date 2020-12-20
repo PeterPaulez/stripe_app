@@ -1,13 +1,16 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:stripe_app/bloc/pagar/bloc.dart';
 
 class TotalPayButton extends StatelessWidget {
-  final bool pagoTarjeta = true;
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final bool pagoTarjeta =
+        BlocProvider.of<PagarBloc>(context).state.tarjetaActiva;
     return Container(
       width: size.width,
       height: 100,
