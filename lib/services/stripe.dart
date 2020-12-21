@@ -26,11 +26,29 @@ class StripeService {
     );
   }
 
-  Future pagarTarjetaExistente({
+  Future<StripeResponse> pagarTarjetaExistente({
     @required String amount,
     @required String currency,
     @required CreditCard card,
-  }) async {}
+  }) async {
+    try {
+      final paymentMethod = await StripePayment.createPaymentMethod(
+          PaymentMethodRequest(card: card));
+      final answer = this._realizarPago(
+        amount: amount,
+        currency: currency,
+        paymentMethod: paymentMethod,
+      );
+
+      return answer;
+    } catch (e) {
+      print(e.toString());
+      return StripeResponse(
+        ok: false,
+        msg: e.toString(),
+      );
+    }
+  }
 
   Future<StripeResponse> pagarNuevaTarjeta({
     @required String amount,

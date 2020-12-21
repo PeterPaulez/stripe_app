@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:stripe_app/bloc/pagar/bloc.dart';
+import 'package:stripe_app/helpers/helpers.dart';
+import 'package:stripe_app/services/stripe.dart';
+import 'package:stripe_payment/stripe_payment.dart';
 
 class TotalPayButton extends StatelessWidget {
   @override
@@ -11,6 +14,8 @@ class TotalPayButton extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final bool pagoTarjeta =
         BlocProvider.of<PagarBloc>(context).state.tarjetaActiva;
+    final double amount = BlocProvider.of<PagarBloc>(context).state.dineroPagar;
+    final String currency = BlocProvider.of<PagarBloc>(context).state.moneda;
     return Container(
       width: size.width,
       height: 100,
@@ -31,7 +36,7 @@ class TotalPayButton extends StatelessWidget {
             children: [
               Text('Total',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              Text('250.55 USD', style: TextStyle(fontSize: 20)),
+              Text('$amount $currency', style: TextStyle(fontSize: 20)),
             ],
           ),
           (pagoTarjeta) ? _BtnPayCard() : _BtnPayOS(),
@@ -69,8 +74,37 @@ class _BtnPayOS extends StatelessWidget {
 class _BtnPayCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final tarjeta = BlocProvider.of<PagarBloc>(context).state.tarjeta;
+    final mesAno = tarjeta.expiracyDate.split('/');
+    final String amount =
+        BlocProvider.of<PagarBloc>(context).state.dineroPagarString;
+    final String currency = BlocProvider.of<PagarBloc>(context).state.moneda;
     return MaterialButton(
-      onPressed: () {},
+      onPressed: () async {
+        print(tarjeta.cardHolderName);
+        mostrarLoading(context);
+        final stripeService = new StripeService();
+        final answer = await stripeService.pagarTarjetaExistente(
+          amount: amount,
+          currency: currency,
+          card: CreditCard(
+            number: tarjeta.cardNumber,
+            expMonth: int.parse(mesAno[0]),
+            expYear: int.parse(mesAno[1]),
+          ),
+        );
+        Navigator.pop(context);
+
+        if (answer.ok) {
+          mostrarAlerta(
+            context,
+            'Tarjeta OK',
+            'Todo se guardo correctamente en Stripe',
+          );
+        } else {
+          mostrarAlerta(context, 'Algo salió mal', answer.msg);
+        }
+      },
       height: 45,
       minWidth: 150,
       shape: StadiumBorder(),
