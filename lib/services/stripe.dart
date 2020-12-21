@@ -1,4 +1,5 @@
 import 'package:meta/meta.dart';
+import 'package:stripe_app/models/stripeResponse.dart';
 import 'package:stripe_payment/stripe_payment.dart';
 
 class StripeService {
@@ -11,18 +12,40 @@ class StripeService {
 
   String _paymentApiURL = 'https://api.stripe.com/v1/payment_intents';
   String _secretKey = 'sk_test_JSKA4WhRXwZg3NGMw2J1TExO';
+  String _publishableKey = 'pk_test_nSIPFj5MlRUTZFuy7Q6xSslR';
 
-  void init() {}
+  void init() {
+    StripePayment.setOptions(
+      StripeOptions(
+        publishableKey: _publishableKey,
+        androidPayMode: 'test',
+        merchantId: 'test',
+      ),
+    );
+  }
 
-  Future pagarTarjetaExistente(
-      {@required String amount,
-      @required String currency,
-      @required CreditCard card}) async {}
-
-  Future pagarNuevaTarjeta({
+  Future pagarTarjetaExistente({
     @required String amount,
     @required String currency,
+    @required CreditCard card,
   }) async {}
+
+  Future<StripeResponse> pagarNuevaTarjeta({
+    @required String amount,
+    @required String currency,
+  }) async {
+    try {
+      final paymentMethod = await StripePayment.paymentRequestWithCardForm(
+          CardFormPaymentRequest());
+      // TODO: Crear paymentIntent
+      return StripeResponse(ok: true);
+    } catch (e) {
+      return StripeResponse(
+        ok: false,
+        msg: e.toString(),
+      );
+    }
+  }
 
   Future pagarAppleGooglePay({
     @required String amount,

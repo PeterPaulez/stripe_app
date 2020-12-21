@@ -5,9 +5,11 @@ import 'package:stripe_app/bloc/pagar/bloc.dart';
 import 'package:stripe_app/data/tarjetas.dart';
 import 'package:stripe_app/helpers/helpers.dart';
 import 'package:stripe_app/pages/tarjeta.dart';
+import 'package:stripe_app/services/stripe.dart';
 import 'package:stripe_app/widgets/totalPayButton.dart';
 
 class HomePage extends StatelessWidget {
+  final stripeService = new StripeService();
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -21,8 +23,26 @@ class HomePage extends StatelessWidget {
               mostrarLoading(context);
               await Future.delayed(Duration(seconds: 2));
               Navigator.pop(context);
-              */
               mostrarAlerta(context, 'Hola', 'Mundo');
+              */
+              final String amount =
+                  BlocProvider.of<PagarBloc>(context).state.dineroPagarString;
+              final String currency =
+                  BlocProvider.of<PagarBloc>(context).state.moneda;
+              final answer = await this.stripeService.pagarNuevaTarjeta(
+                    amount: amount,
+                    currency: currency,
+                  );
+
+              if (answer.ok) {
+                mostrarAlerta(
+                  context,
+                  'Tarjeta OK',
+                  'Todo se guardo correctamente en Stripe',
+                );
+              } else {
+                mostrarAlerta(context, 'Algo salió mal', answer.msg);
+              }
             },
             icon: Icon(Icons.add),
           )
