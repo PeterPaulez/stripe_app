@@ -1,4 +1,6 @@
+import 'package:dio/dio.dart';
 import 'package:meta/meta.dart';
+import 'package:stripe_app/models/stripeReponseIntent.dart';
 import 'package:stripe_app/models/stripeResponse.dart';
 import 'package:stripe_payment/stripe_payment.dart';
 
@@ -11,16 +13,16 @@ class StripeService {
   factory StripeService() => _instance;
 
   String _paymentApiURL = 'https://api.stripe.com/v1/payment_intents';
-  String _secretKey = 'sk_test_JSKA4WhRXwZg3NGMw2J1TExO';
+  static String _secretKey = 'sk_test_JSKA4WhRXwZg3NGMw2J1TExO';
   String _publishableKey = 'pk_test_nSIPFj5MlRUTZFuy7Q6xSslR';
+  final headerOptions = new Options(
+    contentType: Headers.formUrlEncodedContentType,
+    headers: {'Authorization': 'Bearer ${StripeService._secretKey}'},
+  );
 
   void init() {
     StripePayment.setOptions(
-      StripeOptions(
-        publishableKey: _publishableKey,
-        androidPayMode: 'test',
-        merchantId: 'test',
-      ),
+      StripeOptions(publishableKey: _publishableKey),
     );
   }
 
@@ -36,14 +38,23 @@ class StripeService {
   }) async {
     try {
       final paymentMethod = await StripePayment.paymentRequestWithCardForm(
-          CardFormPaymentRequest());
-      // TODO: Crear paymentIntent
+          new CardFormPaymentRequest());
+      final answer =
+          await this._crearPaymentIntent(amount: amount, currency: currency);
+
       return StripeResponse(ok: true);
     } catch (e) {
+      print(e.toString());
       return StripeResponse(
         ok: false,
         msg: e.toString(),
       );
+    }
+  }
+
+  void handleError(dynamic error) {
+    if (error.code == 'purchaseCancelled' || error.code == 'cancelled') {
+      print('payment cancelled');
     }
   }
 
@@ -52,10 +63,28 @@ class StripeService {
     @required String currency,
   }) async {}
 
-  Future _crearPaymentIntent({
+  Future<StripeResponseIntent> _crearPaymentIntent({
     @required String amount,
     @required String currency,
-  }) async {}
+  }) async {
+    try {
+      final dio = Dio();
+      final data = {
+        'amount': amount,
+        'currency': currency,
+      };
+      final answer = await dio.post(
+        _paymentApiURL,
+        data: data,
+        options: headerOptions,
+      );
+
+      return StripeResponseIntent.fromJson(answer.data);
+    } catch (e) {
+      print('Error en el Intent: ${e.toString()}');
+      return StripeResponseIntent(status: '400');
+    }
+  }
 
   Future _realizarPago({
     @required String amount,
