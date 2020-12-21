@@ -19,12 +19,7 @@ class HomePage extends StatelessWidget {
         actions: [
           IconButton(
             onPressed: () async {
-              /*
               mostrarLoading(context);
-              await Future.delayed(Duration(seconds: 2));
-              Navigator.pop(context);
-              mostrarAlerta(context, 'Hola', 'Mundo');
-              */
               final String amount =
                   BlocProvider.of<PagarBloc>(context).state.dineroPagarString;
               final String currency =
@@ -33,6 +28,7 @@ class HomePage extends StatelessWidget {
                     amount: amount,
                     currency: currency,
                   );
+              Navigator.pop(context);
 
               if (answer.ok) {
                 mostrarAlerta(
